@@ -40,8 +40,8 @@ module.exports = async function (context, req) {
     
     fetch("https://graph.microsoft.com/v1.0/users/8f6ae987-0e5b-400c-956c-c7d6fb65e438", requestOptions)
       .then(response => response.text())
-      .then(result => context.log(result))
-      .catch(error => context.log('error', error));
+      .then(result => console.log(result))
+      .catch(error => console.log('error', error));
     
     }
 
