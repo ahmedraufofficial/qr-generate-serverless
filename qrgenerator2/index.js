@@ -37,13 +37,13 @@ module.exports = async function (context, req) {
             }
         };
     
-        console.log('request made to web API at: ' + new Date().toString());
+        context.log('request made to web API at: ' + new Date().toString());
     
         try {
             const response = await axios.get('https://graph.microsoft.com/v1.0/users', options);
-            console.log(response.data)
+            context.log(response.data)
         } catch (error) {
-            console.log(error)
+            context.log(error)
         }
     } 
 
