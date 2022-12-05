@@ -27,26 +27,37 @@ module.exports = async function (context, req) {
         context.log(error);
     });
 
-    if (token) {
-
-    var myHeaders = new Headers();
-    myHeaders.append("Authorization", `Bearer ${token}`);
+/*     var myHeaders = new Headers();
+    myHeaders.append("Authorization", "Bearer");
     
     var requestOptions = {
       method: 'GET',
       headers: myHeaders,
       redirect: 'follow'
     };
-    try {
-        fetch("https://graph.microsoft.com/v1.0/users/8f6ae987-0e5b-400c-956c-c7d6fb65e438", requestOptions)
-        .then(response => response.text())
-        .then(result => console.log(result))
-        .catch(error => console.log('error', error));
-    } catch (err) {
-        context.log(err)
-    }
+    
+    fetch("https://graph.microsoft.com/v1.0/users/8f6ae987-0e5b-400c-956c-c7d6fb65e438", requestOptions)
+      .then(response => response.text())
+      .then(result => console.log(result))
+      .catch(error => console.log('error', error)); */
 
-    }
+
+    if (token) {
+        const options = {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        };
+    
+        context.log('request made to web API at: ' + new Date().toString());
+    
+        try {
+            const response = await axios.get('https://graph.microsoft.com/v1.0/users', options);
+            context.log(response.data)
+        } catch (error) {
+            context.log(error)
+        }
+    } 
 
     context.log('JavaScript HTTP trigger function processed a request.');
 
