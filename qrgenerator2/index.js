@@ -6,7 +6,8 @@ module.exports = async function (context, req) {
 
     const axios = require('axios');
     const qs = require('qs');
-    
+    const request = require('request');
+
     const postData = {
       client_id: APP_ID,
       scope: MS_GRAPH_SCOPE,
@@ -42,21 +43,36 @@ module.exports = async function (context, req) {
       .catch(error => console.log('error', error)); */
 
 
+    function doRequest(options) {
+    return new Promise(function (resolve, reject) {
+        request(options, function (error, res, body) {
+        if (!error && res.statusCode === 200) {
+            resolve(body);
+        } else {
+            reject(error);
+        }
+        });
+    });
+    }
+
+
     if (token) {
         const options = {
+            method: 'get',
+            url: 'https://graph.microsoft.com/v1.0/users/8f6ae987-0e5b-400c-956c-c7d6fb65e438',
             headers: {
                 Authorization: `Bearer ${token}`
             }
         };
     
-        context.log('request made to web API at: ' + new Date().toString());
-    
+
         try {
-            const response = await axios.get('https://graph.microsoft.com/v1.0/users', options);
-            context.log(response.data)
+            let response = await doRequest(options);
+            console.log(response); // `response` will be whatever you passed to `resolve()` at the top
         } catch (error) {
-            context.log(error)
+            console.error(error); // `error` will be whatever you passed to `reject()` at the top
         }
+
     } 
 
     context.log('JavaScript HTTP trigger function processed a request.');
