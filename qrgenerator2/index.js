@@ -37,12 +37,15 @@ module.exports = async function (context, req) {
       headers: myHeaders,
       redirect: 'follow'
     };
-    
-    fetch("https://graph.microsoft.com/v1.0/users/8f6ae987-0e5b-400c-956c-c7d6fb65e438", requestOptions)
-      .then(response => response.text())
-      .then(result => console.log(result))
-      .catch(error => console.log('error', error));
-    
+    try {
+        fetch("https://graph.microsoft.com/v1.0/users/8f6ae987-0e5b-400c-956c-c7d6fb65e438", requestOptions)
+        .then(response => response.text())
+        .then(result => console.log(result))
+        .catch(error => console.log('error', error));
+    } catch (err) {
+        context.log(err)
+    }
+
     }
 
     context.log('JavaScript HTTP trigger function processed a request.');
