@@ -14,10 +14,6 @@ module.exports = async function (context, req) {
       client_secret: APP_SECERET,
       grant_type: 'client_credentials'
     };
-    
-    let token = '';
-
-    token = await getToken(TOKEN_ENDPOINT, postData)
 
     if (req.query.validationToken) {
         context.log(req.query.validationToken);
@@ -30,7 +26,8 @@ module.exports = async function (context, req) {
     }
     else {
         context.log(req.body)
-        const responseMessage = JSON.stringify(req.body?.value[0]?.resource)
+        const responseMessage = req.body?.value[0]?.resource
+        const token = await getToken(TOKEN_ENDPOINT, postData)
         if (token && responseMessage) {
             try {
                 const userData = await getUser(token, responseMessage);
