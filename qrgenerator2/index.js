@@ -19,19 +19,6 @@ module.exports = async function (context, req) {
 
     token = await getToken(TOKEN_ENDPOINT, postData)
 
-    if (token) {
-        try {
-            const userData = await getUser(token, "Users/72b08237-30f1-4fbe-be57-1df593448f7a");
-            const generateQr = await postQr(JSON.parse(userData), BEACONSTAC_API_KEY);
-            const qrUrl = await getQrUrl(JSON.parse(generateQr)["id"], BEACONSTAC_API_KEY);
-            const binaryData = await getSvgBinary(JSON.parse(qrUrl)["urls"]["svg"])
-            const uploadSvg = await postToSharepoint(binaryData, SHAREPOINT_SITE, JSON.parse(qrUrl)["name"], token)
-            context.log(uploadSvg);
-        } catch (error) {
-            context.log(error);
-        }
-    } 
-
     if (req.query.validationToken) {
         context.log(req.query.validationToken);
         context.res = {
@@ -42,8 +29,22 @@ module.exports = async function (context, req) {
         };
     }
     else {
+        context.log(req.body)
         const responseMessage = JSON.stringify(req.body?.value[0]?.resource)
-        context.log(responseMessage)
+        if (token && responseMessage) {
+            try {
+                const userData = await getUser(token, responseMessage);
+                const generateQr = await postQr(JSON.parse(userData), BEACONSTAC_API_KEY);
+                const qrUrl = await getQrUrl(JSON.parse(generateQr)["id"], BEACONSTAC_API_KEY);
+                const binaryData = await getSvgBinary(JSON.parse(qrUrl)["urls"]["svg"])
+                const uploadSvg = await postToSharepoint(binaryData, SHAREPOINT_SITE, JSON.parse(qrUrl)["name"], token)
+                if (uploadSvg) {
+                    context.log("Executed Succesfully")
+                }
+            } catch (error) {
+                context.log(error);
+            }
+        } 
         context.res = {
             // status: 200, /* Defaults to 200 */
             body: ""

@@ -164,10 +164,8 @@ const postToSharepoint = (data, siteUrl, fileName, token) => {
     return new Promise((resolve, reject) => {
         request(options, function(error, res, body) {
             if (!error && res.statusCode === 201) {
-                console.log("HERE")
                 resolve(body);
             } else {
-                console.log("Error")
                 reject(error);
             }
         })
