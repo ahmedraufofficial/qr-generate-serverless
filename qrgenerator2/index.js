@@ -1,5 +1,7 @@
-const {getUser, getToken, getQrUrl, getSvgBinary} = require('../services/get');  
-const {postQr, postToSharepoint} = require('../services/post');
+const {getUser, getToken, getQrUrl, getSvgBinary, getQr} = require('../services/get');  
+const {postQr} = require('../services/post');
+const {putToSharepoint, putQr} = require('../services/put');
+const {patchUser} = require('../services/patch')
 
 module.exports = async function (context, req) {
     const APP_ID = '6423419d-cd01-49fd-a7c0-6779de11f26d';
@@ -26,24 +28,31 @@ module.exports = async function (context, req) {
     }
     else {
         context.log(req.body)
-        const responseMessage = req.body?.value[0]?.resource
+        const userResource = req.body?.value[0]?.resource
         const token = await getToken(TOKEN_ENDPOINT, postData)
-        if (token && responseMessage) {
+        if (token && userResource) {
             try {
-                const userData = await getUser(token, responseMessage);
-                const generateQr = await postQr(JSON.parse(userData), BEACONSTAC_API_KEY);
-                const qrUrl = await getQrUrl(JSON.parse(generateQr)["id"], BEACONSTAC_API_KEY);
-                const binaryData = await getSvgBinary(JSON.parse(qrUrl)["urls"]["svg"])
-                const uploadSvg = await postToSharepoint(binaryData, SHAREPOINT_SITE, JSON.parse(qrUrl)["name"], token)
-                if (uploadSvg) {
-                    context.log("Executed Succesfully")
+                const userData = JSON.parse(await getUser(token, userResource));
+                if (req.body?.value[0]?.changeType === "updated"){
+                    if (userData.onPremisesExtensionAttributes.extensionAttribute1 != null){
+                        const userQr = JSON.parse(await getQr(userData.onPremisesExtensionAttributes.extensionAttribute1, BEACONSTAC_API_KEY))
+                        const updateUser = await putQr(userData.onPremisesExtensionAttributes.extensionAttribute1, userData, userQr, BEACONSTAC_API_KEY)
+                        updateUser ? context.log("Successfully updated user QR.") : context.log("Unable to update user QR.")
+                    }
+                } else {
+                    const generateQr = await postQr(userData, BEACONSTAC_API_KEY);
+                    const qrUrl = await getQrUrl(JSON.parse(generateQr)["id"], BEACONSTAC_API_KEY);
+                    const binaryData = await getSvgBinary(JSON.parse(qrUrl)["urls"]["svg"])
+                    const uploadSvg = await putToSharepoint(binaryData, SHAREPOINT_SITE, JSON.parse(qrUrl)["name"], token)
+                    uploadSvg ? context.log("Uploaded to Sharepoint successfully") : context.log("Unable to upload on Sharepoint")
+                    const updateUser = await patchUser(token, userResource, JSON.parse(generateQr)["id"])
+                    updateUser ? context.log("Updated user AD profile") : context.log("Unable to update user AD profile")
                 }
             } catch (error) {
                 context.log(error);
             }
         } 
         context.res = {
-            // status: 200, /* Defaults to 200 */
             body: ""
         };
     }

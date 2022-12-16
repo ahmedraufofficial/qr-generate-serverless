@@ -18,12 +18,11 @@ const getToken = (endpoint, credentials) => {
 const getUser = (token, userId) => {
     const options = {
         method: 'get',
-        url: `https://graph.microsoft.com/v1.0/${userId}`,
+        url: `https://graph.microsoft.com/v1.0/${userId}?$select=onPremisesExtensionAttributes,displayName,givenName,jobTitle,mail,mobilePhone,officeLocation,surname,userPrincipalName,id,businessPhones`,
         headers: {
             Authorization: `Bearer ${token}`
         }
     };
-    //8f6ae987-0e5b-400c-956c-c7d6fb65e438
     return new Promise((resolve, reject) => {
         request(options, function (error, res, body) {
             if (!error && res.statusCode === 200) {
@@ -47,10 +46,8 @@ const getQrUrl = (id, apiKey) => {
     return new Promise((resolve, reject) => {
         request(options, function (error, res, body) {
             if (!error && res.statusCode === 200) {
-                console.log("sucesss")
                 resolve(body);
             } else {
-                console.log("errror")
                 reject(error);
             }
         });
@@ -69,7 +66,28 @@ const getSvgBinary = (url) => {
     })
 }
 
+const getQr = (qrId, apiKey) => {
+    const options = {
+        'method': 'GET',
+        'url': `https://api.beaconstac.com/api/2.0/qrcodes/${qrId}`,
+        'headers': {
+          'Authorization': `Token ${apiKey}`,
+          'Content-Type': 'application/json'
+        }
+    };
+    return new Promise((resolve, reject) => {
+        request(options, function (error, res, body) {
+            if (!error && res.statusCode === 200) {
+                resolve(body);
+            } else {
+                reject(error);
+            }
+        });
+    })
+}
+
 exports.getToken = getToken;
 exports.getUser = getUser;
 exports.getQrUrl = getQrUrl;
 exports.getSvgBinary = getSvgBinary;
+exports.getQr = getQr;

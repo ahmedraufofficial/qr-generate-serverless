@@ -33,7 +33,7 @@ const postQr = (userData, apiKey) => {
                 "phone": {
                     "home": null,
                     "work": "800677669",
-                    "mobile": ""
+                    "mobile": userData?.mobilePhone ? userData?.mobilePhone : ""
                 },
                 "layout": "default",
                 "company": "Bespin Global",
@@ -47,7 +47,7 @@ const postQr = (userData, apiKey) => {
                     }
                 ],
                 "logo_url": "https://d1bqobzsowu5wu.cloudfront.net/116496/bulk-upload/vcard-plus/images/68bedea3fa4e424692938986ffc63306",
-                "phone_v2": [
+                "phone_v2": userData?.mobilePhone ? [
                     {
                     "label": "work",
                     "valid": "valid",
@@ -56,11 +56,17 @@ const postQr = (userData, apiKey) => {
                     {
                     "label": "mobile",
                     "valid": "valid",
-                    "value": userData?.mobilePhone || null
+                    "value": userData?.mobilePhone
+                    }
+                ] : [
+                    {
+                    "label": "work",
+                    "valid": "valid",
+                    "value": "800677669"
                     }
                 ],
                 "last_name": userData?.surname,
-                "address_v2": "Al Wafra Square Building, Al Ghazal Street, Al Reem Island, Abu Dhabi P.O. Box. 764668, United Arab Emirates",
+                "address_v2": userData?.officeLocation,
                 "first_name": userData?.givenName,
                 "website_v2": [
                     {
@@ -151,26 +157,4 @@ const postQr = (userData, apiKey) => {
     })
 }
 
-const postToSharepoint = (data, siteUrl, fileName, token) => {
-    const options = {
-        method: 'put',
-        url: `${siteUrl}/${fileName}.svg:/content`,
-        headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'image/svg+xml',
-        },
-        body: data
-    };
-    return new Promise((resolve, reject) => {
-        request(options, function(error, res, body) {
-            if (!error && res.statusCode === 201) {
-                resolve(body);
-            } else {
-                reject(error);
-            }
-        })
-    })
-}
-
 exports.postQr = postQr;
-exports.postToSharepoint = postToSharepoint;
