@@ -10,7 +10,7 @@ const patchUser = (token, userId, qrId) => {
         },
         body: JSON.stringify({
           "onPremisesExtensionAttributes": {
-            "extensionAttribute1": qrId
+            "extensionAttribute1": String(qrId)
           }
         })
       

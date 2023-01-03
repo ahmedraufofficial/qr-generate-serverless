@@ -157,4 +157,47 @@ const postQr = (userData, apiKey) => {
     })
 }
 
+const postEmail = (applicationEmail, fileName, user, imageBase64, token) => {
+    const email = {
+        subject: `A QR for ${user} has just been generated!`,
+        body: {
+          contentType: 'html',
+          content: 'This message contains an SVG image attachment of the generated QR'
+        },
+        toRecipients: [{
+          emailAddress: {
+            address: applicationEmail
+          }
+        }],
+        attachments: [
+          {
+            "@odata.type": "#microsoft.graph.fileAttachment",
+            contentBytes: imageBase64,
+            name: `${fileName}.svg`
+          }
+        ]
+      };
+      
+    const options = {
+        'method': 'POST',
+        'url': `https://graph.microsoft.com/v1.0/users/${applicationEmail}/sendMail`,
+        'headers': {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({message: email})
+    }
+
+    return new Promise((resolve, reject) => {
+        request(options, function(error, res, body) {
+            if (!error && res.statusCode === 202) {
+                resolve(true);
+            } else {
+                reject(error);
+            }
+        })
+    })
+}
+
+exports.postEmail = postEmail;
 exports.postQr = postQr;
