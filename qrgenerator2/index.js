@@ -33,7 +33,7 @@ module.exports = async function (context, req) {
         context.log(req.body)
         const userResource = req.body?.value[0]?.resource
         const userJSON = JSON.stringify(req.body?.value[0]?.resourceData)
-        console.log(userJSON)
+        context.log(userJSON)
         const token = await getToken(TOKEN_ENDPOINT, postData)
         if (token && userResource) {
             try {
