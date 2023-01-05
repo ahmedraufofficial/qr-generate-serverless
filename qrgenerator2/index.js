@@ -36,13 +36,13 @@ module.exports = async function (context, req) {
         if (token && userResource) {
             try {
                 const userData = JSON.parse(await getUser(token, userResource));
-                if (req.body?.value[0]?.changeType === "updated"){
-                    if (userData.onPremisesExtensionAttributes.extensionAttribute1 != null){
-                        const userQr = JSON.parse(await getQr(userData.onPremisesExtensionAttributes.extensionAttribute1, BEACONSTAC_API_KEY))
-                        const updateUser = await putQr(userData.onPremisesExtensionAttributes.extensionAttribute1, userData, userQr, BEACONSTAC_API_KEY)
-                        updateUser ? context.log("Successfully updated user QR.") : context.log("Unable to update user QR.")
-                    }
+                if (userData.onPremisesExtensionAttributes.extensionAttribute1 != null){
+                    context.log("Update function")
+                    const userQr = JSON.parse(await getQr(userData.onPremisesExtensionAttributes.extensionAttribute1, BEACONSTAC_API_KEY))
+                    const updateUser = await putQr(userData.onPremisesExtensionAttributes.extensionAttribute1, userData, userQr, BEACONSTAC_API_KEY)
+                    updateUser ? context.log("Successfully updated user QR.") : context.log("Unable to update user QR.")
                 } else {
+                    context.log("Create function")
                     const generateQr = JSON.parse(await postQr(userData, BEACONSTAC_API_KEY));
                     const qrUrl = await getQrUrl(generateQr["id"], BEACONSTAC_API_KEY);
                     const fileName = JSON.parse(qrUrl)["name"]
