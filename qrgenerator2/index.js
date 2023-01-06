@@ -46,6 +46,8 @@ module.exports = async function (context, req) {
                 } else {
                     context.log("Create function")
                     const generateQr = JSON.parse(await postQr(userData, BEACONSTAC_API_KEY));
+                    const updateUser = await patchUser(token, userResource, generateQr["id"])
+                    updateUser ? context.log("Updated user AD profile") : context.log("Unable to update user AD profile")
                     const qrUrl = await getQrUrl(generateQr["id"], BEACONSTAC_API_KEY);
                     const fileName = JSON.parse(qrUrl)["name"]
                     //const binaryData = await getSvgBinary(JSON.parse(qrUrl)["urls"]["svg"])
@@ -53,8 +55,6 @@ module.exports = async function (context, req) {
                     const uploadSvg = await putToSharepoint(binaryData, SHAREPOINT_SITE, fileName, token)
                     uploadSvg ? context.log("Uploaded to Sharepoint successfully") : context.log("Unable to upload on Sharepoint")
                     const imageBase64 = Buffer.from(binaryData).toString('base64')
-                    const updateUser = await patchUser(token, userResource, generateQr["id"])
-                    updateUser ? context.log("Updated user AD profile") : context.log("Unable to update user AD profile")
                     const sendEmail = await postEmail(APPLICATION_EMAIL, fileName, userData?.displayName, imageBase64, token)
                     sendEmail ? context.log("Email successfully sent") : context.log("Email failed to be sent")
                 }
