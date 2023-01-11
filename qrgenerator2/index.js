@@ -31,6 +31,9 @@ module.exports = async function (context, req) {
     }
     else if (req.body.clientState == "sharepointResource") {
         context.log(req.body)
+        context.res = {
+            body: ""
+        };
     }
     else {
         context.log(req.body)
