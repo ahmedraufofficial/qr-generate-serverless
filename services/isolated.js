@@ -64,5 +64,9 @@ const run = async () => {
   })));
 }
 
-run();
+//run();
 
+
+
+
+const {getUser, getToken, getQrUrl, getSvgBinary, getQr, getQrList} = require('../services/get');  

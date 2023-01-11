@@ -29,6 +29,9 @@ module.exports = async function (context, req) {
             body: req.query.validationToken
         };
     }
+    else if (req.body.clientState == "sharepointResource") {
+        context.log(req.body)
+    }
     else {
         context.log(req.body)
         const userResource = req.body?.value[0]?.resource

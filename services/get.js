@@ -86,8 +86,29 @@ const getQr = (qrId, apiKey) => {
     })
 }
 
+const getQrList = (name, apiKey) => {
+    const options = {
+        'method': 'GET',
+        'url': `https://api.beaconstac.com/api/2.0/qrcodes/?state=A&name=${name}`,
+        'headers': {
+          'Authorization': `Token ${apiKey}`,
+          'Content-Type': 'application/json'
+        }
+    };
+    return new Promise((resolve, reject) => {
+        request(options, function (error, res, body) {
+            if (!error && res.statusCode === 200) {
+                resolve(body);
+            } else {
+                reject(error);
+            }
+        });
+    })
+}
+
 exports.getToken = getToken;
 exports.getUser = getUser;
 exports.getQrUrl = getQrUrl;
 exports.getSvgBinary = getSvgBinary;
 exports.getQr = getQr;
+exports.getQrList = getQrList;
