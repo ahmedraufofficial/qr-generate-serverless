@@ -19,7 +19,6 @@ module.exports = async function (context, req) {
       client_secret: APP_SECERET,
       grant_type: 'client_credentials'
     };
-    context.log(JSON.stringify(req.query))
     if (req.query.validationToken) {
         context.log(req.query.validationToken);
         context.res = {
@@ -27,6 +26,15 @@ module.exports = async function (context, req) {
                 'Content-Type': 'text/plain'
             },
             body: req.query.validationToken
+        };
+    }
+    else if (req.query.validationtoken) {
+        context.log(req.query.validationtoken);
+        context.res = {
+            headers: {
+                'Content-Type': 'text/plain'
+            },
+            body: req.query.validationtoken
         };
     }
     else if (req.body.clientState == "sharepointResource") {
