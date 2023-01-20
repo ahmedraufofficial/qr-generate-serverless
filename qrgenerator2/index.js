@@ -19,7 +19,7 @@ module.exports = async function (context, req) {
       client_secret: APP_SECERET,
       grant_type: 'client_credentials'
     };
-
+    context.log(JSON.stringify(req.query))
     if (req.query.validationToken) {
         context.log(req.query.validationToken);
         context.res = {
