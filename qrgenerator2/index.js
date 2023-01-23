@@ -1,4 +1,4 @@
-const {getUser, getToken, getQrUrl, getSvgBinary, getQr} = require('../services/get');  
+const {getUser, getToken, getQrUrl, getSvgBinary, getQr, getDelta} = require('../services/get');  
 const {postQr, postEmail} = require('../services/post');
 const {putToSharepoint, putQr} = require('../services/put');
 const {patchUser} = require('../services/patch')
@@ -19,6 +19,21 @@ module.exports = async function (context, req) {
       client_secret: APP_SECERET,
       grant_type: 'client_credentials'
     };
+
+    const SHAREPOINT_APP_ID = '436eb3f6-3ba6-424c-8f56-349ccc2f9a15@0cea0ab7-2234-4f57-bc80-4d3e66df4791';
+    const SHAREPOINT_APP_SECERET = '/P2JY24jIqX60GPwxl084cytfJfd3dbIjOE2wtIIUB8=';
+    const SHAREPOINT_TOKEN_ENDPOINT ='https://accounts.accesscontrol.windows.net/0cea0ab7-2234-4f57-bc80-4d3e66df4791/tokens/oAuth/2';
+    const SHAREPOINT_RESOURCE = '00000003-0000-0ff1-ce00-000000000000/bespinglobalmea.sharepoint.com@0cea0ab7-2234-4f57-bc80-4d3e66df4791';
+    const SHAREPOINT_LIST = `https://bespinglobalmea.sharepoint.com/sites/Marketing/_api/web/Lists(guid'f111eca3-ca2f-4680-b54c-ed4a93926db9')`
+    const sharepointPostData = {
+      client_id: SHAREPOINT_APP_ID,
+      resource: SHAREPOINT_RESOURCE,
+      client_secret: SHAREPOINT_APP_SECERET,
+      grant_type: 'client_credentials'
+    };
+
+
+
     if (req.query.validationToken) {
         context.log(req.query.validationToken);
         context.res = {
@@ -37,8 +52,11 @@ module.exports = async function (context, req) {
             body: req.query.validationtoken
         };
     }
-    else if (req.body.clientState == "sharepointResource") {
+    else if (req.body?.value[0]?.clientState == "sharepointResource") {
         context.log(req.body)
+        const token = await getToken(SHAREPOINT_TOKEN_ENDPOINT, sharepointPostData)
+        const getItemId = await getDelta(token, SHAREPOINT_LIST)
+        console.log(getItemId)
         context.res = {
             body: ""
         };

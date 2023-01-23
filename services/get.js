@@ -106,9 +106,31 @@ const getQrList = (name, apiKey) => {
     })
 }
 
+const getDelta = (token, list) => {
+    let date = new Date();
+    date.setMinutes(date.getMinutes() - 2);
+    const options = {
+        method: 'GET',
+        url: `${list}/items?$filter=Modified gt datetime'${date.toISOString()}'`,
+        headers: {
+            Authorization: `Bearer ${token}`,
+        }
+    };
+    return new Promise((resolve, reject) => {
+        request(options, function (error, res, body) {
+            if (!error && res.statusCode === 200) {
+                resolve(body);
+            } else {
+                reject(error);
+            }
+        });
+    })
+}
+
 exports.getToken = getToken;
 exports.getUser = getUser;
 exports.getQrUrl = getQrUrl;
 exports.getSvgBinary = getSvgBinary;
 exports.getQr = getQr;
 exports.getQrList = getQrList;
+exports.getDelta = getDelta;
