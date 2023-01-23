@@ -56,7 +56,7 @@ module.exports = async function (context, req) {
         context.log(req.body)
         const token = await getToken(SHAREPOINT_TOKEN_ENDPOINT, sharepointPostData)
         const getItemId = await getDelta(token, SHAREPOINT_LIST)
-        console.log(getItemId)
+        context.log(getItemId)
         context.res = {
             body: ""
         };
