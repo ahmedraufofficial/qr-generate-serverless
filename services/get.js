@@ -108,7 +108,7 @@ const getQrList = (name, apiKey) => {
 
 const getDelta = (token, list) => {
     let date = new Date();
-    date.setMinutes(date.getMinutes() - 10);
+    date.setMinutes(date.getMinutes() - 1);
     const options = {
         method: 'GET',
         url: `${list}/items?$filter=Modified gt datetime'${date.toISOString()}'`,
