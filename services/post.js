@@ -199,5 +199,55 @@ const postEmail = (applicationEmail, fileName, user, imageBase64, token) => {
     })
 }
 
+const postBeaconStacForm = (keys, image, filename) => {
+    const contentType = filename.toLowerCase().includes(".png") ? "image/png" : filename.toLowerCase().includes(".jp") ? "image/jpeg" : ""
+    const options = {
+        'method': 'POST',
+        'url': 'https://s3.amazonaws.com/beaconstac-content',
+        'headers': {
+            'Host': 's3.amazonaws.com',
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:103.0) Gecko/20100101 Firefox/103.0',
+            'Accept': '*/*',
+            'Accept-Language': 'en-US,en;q=0.5',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'Content-Type': 'multipart/form-data',
+            'Origin': ' https://dashboard.beaconstac.com',
+            'Connection': ' keep-alive',
+            'Referer': ' https://dashboard.beaconstac.com/',
+            'Sec-Fetch-Dest': ' empty',
+            'Sec-Fetch-Mode': ' cors',
+            'Sec-Fetch-Site': ' cross-sit'
+        },
+        formData: {
+            'key': keys["key"],
+            'Policy': keys["policy"],
+            'X-Amz-Signature': keys["x-amz-signature"],
+            'X-Amz-Algorithm': keys["x-amz-algorithm"],
+            'X-Amz-Date': keys["x-amz-date"],
+            'X-Amz-Credential': keys["x-amz-credential"],
+            'X-Amz-Security-Token': keys["x-amz-security-token"],
+            'Content-Type': contentType,
+            'file': {
+              'value': image,
+              'options': {
+                'filename': filename,
+                'Content-Type': contentType
+              }
+            }
+        }
+    };
+
+    return new Promise((resolve, reject) => {
+        request(options, function (error, res, body) {
+            if (!error && contentType && res.statusCode === 204) {
+                resolve("Successfully uploaded image to Beaconstac");
+            } else {
+                reject(error);
+            }
+        });
+    })
+}
+
 exports.postEmail = postEmail;
 exports.postQr = postQr;
+exports.postBeaconStacForm = postBeaconStacForm;

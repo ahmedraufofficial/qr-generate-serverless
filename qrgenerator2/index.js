@@ -1,8 +1,9 @@
-const {getUser, getToken, getQrUrl, getSvgBinary, getQr, getDelta} = require('../services/get');  
-const {postQr, postEmail} = require('../services/post');
-const {putToSharepoint, putQr} = require('../services/put');
-const {patchUser} = require('../services/patch')
+const {getUser, getToken, getQrUrl, getSvgBinary, getQr, getDelta, getSPImageNameAndUrl, getAWStoken} = require('../services/get');  
+const {postQr, postEmail, postBeaconStacForm} = require('../services/post');
+const {putToSharepoint, putQr, putImageVisibilty} = require('../services/put');
+const {patchUser} = require('../services/patch');
 const Buffer = require('buffer').Buffer;
+const {XMLParser} = require("fast-xml-parser");
 var qr = require('node-qr-image');
 
 module.exports = async function (context, req) {
@@ -13,6 +14,8 @@ module.exports = async function (context, req) {
     const BEACONSTAC_API_KEY = '1d13d7f54396e64b2464bf5e20ab9e9343ac44ff';
     const SHAREPOINT_SITE = 'https://graph.microsoft.com/v1.0/sites/94fe361b-d7b2-44f3-8be2-c151fb3c5c12/drives/b!Gzb-lLLX80SL4sFR-zxcEgR49EqCVvpCuWAdA6g3VYIYBVKPJiFhSJfIok0t8vk7/root:/Stationary/Access_Cards/QR_Codes_New';
     const APPLICATION_EMAIL = 'qr.sharepoint@bespinglobal.ae';
+    const BEACONSTAC_ORGANIZATION = 116496;
+    const BEACONSTAC_FOLDER = 352414;
     const postData = {
       client_id: APP_ID,
       scope: MS_GRAPH_SCOPE,
@@ -31,8 +34,6 @@ module.exports = async function (context, req) {
       client_secret: SHAREPOINT_APP_SECERET,
       grant_type: 'client_credentials'
     };
-
-
 
     if (req.query.validationToken) {
         context.log(req.query.validationToken);
@@ -55,8 +56,30 @@ module.exports = async function (context, req) {
     else if (req.body?.value[0]?.clientState == "sharepointResource") {
         context.log(req.body)
         const token = await getToken(SHAREPOINT_TOKEN_ENDPOINT, sharepointPostData)
-        const getItemId = await getDelta(token, SHAREPOINT_LIST)
-        context.log(getItemId)
+        const getXML = await getDelta(token, SHAREPOINT_LIST)
+        const parser = new XMLParser();
+        let properties = parser.parse(getXML).feed.entry;
+        const resourceId = Array.isArray(properties) ? properties.slice(-1)[0].content['m:properties']['d:Id'] : properties.content['m:properties']['d:Id']
+        context.log(`Uploading resource ${resourceId} to Beaconstac`)
+        const imageXML = await getSPImageNameAndUrl(token, SHAREPOINT_LIST, resourceId)
+        const imageName = parser.parse(imageXML).entry.content['m:properties']['d:Name']
+        const imageBinary = await getSPImageNameAndUrl(token, SHAREPOINT_LIST, resourceId, true)
+        const imageBuffer = Buffer.from(imageBinary, 'binary')
+        const keys = JSON.parse(await getAWStoken(BEACONSTAC_ORGANIZATION, BEACONSTAC_FOLDER, BEACONSTAC_API_KEY));
+        const uploadToBeaconStac = await postBeaconStacForm(keys, imageBuffer, imageName)
+        context.log(uploadToBeaconStac)
+        if (uploadToBeaconStac) {
+            const displayOnBeaconStac = JSON.parse(await putImageVisibilty(keys.id, imageName, BEACONSTAC_API_KEY))
+            const graphToken = await getToken(TOKEN_ENDPOINT, postData)
+            const userData = JSON.parse(await getUser(graphToken, `Users/${displayOnBeaconStac.name.replace('.jpg','').replace('.png','').replace('.jpeg','')}`));
+            if (userData.onPremisesExtensionAttributes.extensionAttribute1 != null){
+                context.log("Update function")
+                const userQr = JSON.parse(await getQr(userData.onPremisesExtensionAttributes.extensionAttribute1, BEACONSTAC_API_KEY))
+                userData.user_image_url = keys.media_url
+                const updateUser = await putQr(userData.onPremisesExtensionAttributes.extensionAttribute1, userData, userQr, BEACONSTAC_API_KEY)
+                updateUser ? context.log("Successfully updated user QR.") : context.log("Unable to update user QR.")
+            }
+        }
         context.res = {
             body: ""
         };

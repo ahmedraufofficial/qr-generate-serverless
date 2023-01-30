@@ -108,7 +108,7 @@ const getQrList = (name, apiKey) => {
 
 const getDelta = (token, list) => {
     let date = new Date();
-    date.setMinutes(date.getMinutes() - 2);
+    date.setMinutes(date.getMinutes() - 1);
     const options = {
         method: 'GET',
         url: `${list}/items?$filter=Modified gt datetime'${date.toISOString()}'`,
@@ -127,6 +127,55 @@ const getDelta = (token, list) => {
     })
 }
 
+const getSPImageNameAndUrl = (token, list, id, variant) => {
+    const options = {
+        method: 'GET',
+        url: `${list}/items(${id})/File${variant === true ? '/$value' : ''}`,
+        headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+        },
+        encoding: 'binary'
+    };
+    return new Promise((resolve, reject) => {
+        request(options, function (error, res, body) {
+            if (!error && res.statusCode === 200) {
+                resolve(body);
+            } else {
+                reject(error);
+            }
+        });
+    })
+}
+
+const getAWStoken = (organization, folder, apiKey) => {
+    const options = {
+        'method': 'POST',
+        'url': `https://api.beaconstac.com/api/2.0/media/?organization=${organization}&content_type=image`,
+        'headers': {
+          'Authorization': `Token ${apiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          "organization": organization,
+          "public":true,
+          "typeform_compatible":null,
+          "folder":folder
+        })
+      
+      };
+    return new Promise((resolve, reject) => {
+        request(options, function (error, res, body) {
+            if (!error && res.statusCode === 201) {
+                resolve(body);
+            } else {
+                reject(error);
+            }
+        });
+    })
+}
+
+
 exports.getToken = getToken;
 exports.getUser = getUser;
 exports.getQrUrl = getQrUrl;
@@ -134,3 +183,5 @@ exports.getSvgBinary = getSvgBinary;
 exports.getQr = getQr;
 exports.getQrList = getQrList;
 exports.getDelta = getDelta;
+exports.getSPImageNameAndUrl = getSPImageNameAndUrl;
+exports.getAWStoken = getAWStoken;

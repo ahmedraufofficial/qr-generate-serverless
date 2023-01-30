@@ -47,6 +47,17 @@ const putQr = (id, userData, userQr, apiKey) => {
                 "value": userData?.mobilePhone
             }
         ]
+    } else if (!initialValues.campaign.vcard_plus?.phone_v2?.value){
+        initialValues.campaign.vcard_plus.phone_v2 = [
+            {
+                "label": "work",
+                "valid": "valid",
+                "value": "800677669"
+            }
+        ]
+    }
+    if (userData?.user_image_url) {
+        initialValues.campaign.vcard_plus.user_image_url = userData.user_image_url
     }
     delete initialValues.id
     delete initialValues.created
@@ -60,17 +71,46 @@ const putQr = (id, userData, userQr, apiKey) => {
         },
         body: JSON.stringify(initialValues)  
     };
-
     return new Promise((resolve, reject) => {
         request(options, function(error, res, body) {
             if (!error && res.statusCode === 200) {
+                console.log("Success")
                 resolve(body);
             } else {
+                console.log("Error")
                 reject(error);
             }
         })
     })
 }
 
+const putImageVisibilty = (id, filename, apiKey) => {
+    const contentType = filename.toLowerCase().includes(".png") ? "image/png" : filename.toLowerCase().includes(".jp") ? "image/jpeg" : ""
+    const options = {
+        'method': 'PUT',
+        'url': `https://api.beaconstac.com/api/2.0/media/${id}/`,
+        'headers': {
+          'Authorization': `Token ${apiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          "content_type": contentType,
+          "name": filename,
+          "visible": true
+        })
+    };
+    return new Promise((resolve, reject) => {
+        request(options, function (error, res, body) {
+            if (!error && contentType && res.statusCode === 200) {
+                resolve(body);
+            } else {
+                reject(error);
+            }
+        });
+    })
+
+}
+
 exports.putQr = putQr;
-exports.putToSharepoint = putToSharepoint
+exports.putToSharepoint = putToSharepoint;
+exports.putImageVisibilty = putImageVisibilty;
