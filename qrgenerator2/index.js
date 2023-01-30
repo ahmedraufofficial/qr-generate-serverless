@@ -59,25 +59,27 @@ module.exports = async function (context, req) {
         const getXML = await getDelta(token, SHAREPOINT_LIST)
         const parser = new XMLParser();
         let properties = parser.parse(getXML).feed.entry;
-        const resourceId = Array.isArray(properties) ? properties.slice(-1)[0].content['m:properties']['d:Id'] : properties.content['m:properties']['d:Id']
-        context.log(`Uploading resource ${resourceId} to Beaconstac`)
-        const imageXML = await getSPImageNameAndUrl(token, SHAREPOINT_LIST, resourceId)
-        const imageName = parser.parse(imageXML).entry.content['m:properties']['d:Name']
-        const imageBinary = await getSPImageNameAndUrl(token, SHAREPOINT_LIST, resourceId, true)
-        const imageBuffer = Buffer.from(imageBinary, 'binary')
-        const keys = JSON.parse(await getAWStoken(BEACONSTAC_ORGANIZATION, BEACONSTAC_FOLDER, BEACONSTAC_API_KEY));
-        const uploadToBeaconStac = await postBeaconStacForm(keys, imageBuffer, imageName)
-        context.log(uploadToBeaconStac)
-        if (uploadToBeaconStac) {
-            const displayOnBeaconStac = JSON.parse(await putImageVisibilty(keys.id, imageName, BEACONSTAC_API_KEY))
-            const graphToken = await getToken(TOKEN_ENDPOINT, postData)
-            const userData = JSON.parse(await getUser(graphToken, `Users/${displayOnBeaconStac.name.replace('.jpg','').replace('.png','').replace('.jpeg','')}`));
-            if (userData.onPremisesExtensionAttributes.extensionAttribute1 != null){
-                context.log("Update function")
-                const userQr = JSON.parse(await getQr(userData.onPremisesExtensionAttributes.extensionAttribute1, BEACONSTAC_API_KEY))
-                userData.user_image_url = keys.media_url
-                const updateUser = await putQr(userData.onPremisesExtensionAttributes.extensionAttribute1, userData, userQr, BEACONSTAC_API_KEY)
-                updateUser ? context.log("Successfully updated user QR.") : context.log("Unable to update user QR.")
+        if (properties) {
+            const resourceId = Array.isArray(properties) ? properties.slice(-1)[0].content['m:properties']['d:Id'] : properties.content['m:properties']['d:Id'];
+            context.log(`Uploading resource ${resourceId} to Beaconstac`)
+            const imageXML = await getSPImageNameAndUrl(token, SHAREPOINT_LIST, resourceId)
+            const imageName = parser.parse(imageXML).entry.content['m:properties']['d:Name']
+            const imageBinary = await getSPImageNameAndUrl(token, SHAREPOINT_LIST, resourceId, true)
+            const imageBuffer = Buffer.from(imageBinary, 'binary')
+            const keys = JSON.parse(await getAWStoken(BEACONSTAC_ORGANIZATION, BEACONSTAC_FOLDER, BEACONSTAC_API_KEY));
+            const uploadToBeaconStac = await postBeaconStacForm(keys, imageBuffer, imageName)
+            context.log(uploadToBeaconStac)
+            if (uploadToBeaconStac) {
+                const displayOnBeaconStac = JSON.parse(await putImageVisibilty(keys.id, imageName, BEACONSTAC_API_KEY))
+                const graphToken = await getToken(TOKEN_ENDPOINT, postData)
+                const userData = JSON.parse(await getUser(graphToken, `Users/${displayOnBeaconStac.name.replace('.jpg','').replace('.png','').replace('.jpeg','')}`));
+                if (userData.onPremisesExtensionAttributes.extensionAttribute1 != null){
+                    context.log("Update function")
+                    const userQr = JSON.parse(await getQr(userData.onPremisesExtensionAttributes.extensionAttribute1, BEACONSTAC_API_KEY))
+                    userData.user_image_url = keys.media_url
+                    const updateUser = await putQr(userData.onPremisesExtensionAttributes.extensionAttribute1, userData, userQr, BEACONSTAC_API_KEY)
+                    updateUser ? context.log("Successfully updated user QR.") : context.log("Unable to update user QR.")
+                }
             }
         }
         context.res = {
