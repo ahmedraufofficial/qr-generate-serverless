@@ -1,6 +1,7 @@
 const qs = require('qs');
 const axios = require('axios');
 const request = require('request');
+const util = require('util');
 axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
 
 const getToken = (endpoint, credentials) => {
@@ -127,10 +128,51 @@ const getDelta = (token, list) => {
     })
 }
 
+const getDeltaBeta = (token, betaList, deltaToken) => {
+    const options = {
+        method: 'GET',
+        url: `${betaList}/items/delta?$select=webUrl&token=${deltaToken.token}`,
+        headers: {
+            Authorization: `Bearer ${token}`,
+        }
+    };
+    return new Promise((resolve, reject) => {
+        request(options, function (error, res, body) {
+            if (!error && res.statusCode === 200) {
+                resolve(body);
+            } else {
+                reject(error);
+            }
+        });
+    })
+}
+
 const getSPImageNameAndUrl = (token, list, id, variant) => {
     const options = {
         method: 'GET',
         url: `${list}/items(${id})/File${variant === true ? '/$value' : ''}`,
+        headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+        },
+        encoding: 'binary'
+    };
+    return new Promise((resolve, reject) => {
+        request(options, function (error, res, body) {
+            if (!error && res.statusCode === 200) {
+                resolve(body);
+            } else {
+                reject(error);
+            }
+        });
+    })
+}
+
+const getSPImageBinary = (token, relativePath, sharepointPath, fileName) => {
+    const url = util.format(relativePath, sharepointPath, fileName)
+    const options = {
+        method: 'GET',
+        url: url,
         headers: {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -185,3 +227,5 @@ exports.getQrList = getQrList;
 exports.getDelta = getDelta;
 exports.getSPImageNameAndUrl = getSPImageNameAndUrl;
 exports.getAWStoken = getAWStoken;
+exports.getDeltaBeta = getDeltaBeta;
+exports.getSPImageBinary = getSPImageBinary;
